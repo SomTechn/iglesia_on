@@ -6,11 +6,6 @@
 const SUPABASE_URL = 'https://qrnvgcnwuhpivaghfvrc.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFybnZnY253dWhwaXZhZ2hmdnJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDI2MTEsImV4cCI6MjA4NTg3ODYxMX0.BBl_aT_rYj496PvO6IUivKoRDVoZYYWuVGDKycF3qS4'
 
-// Verificar configuración
-if (SUPABASE_URL === 'TU_SUPABASE_URL_AQUI' || SUPABASE_ANON_KEY === 'TU_SUPABASE_ANON_KEY_AQUI') {
-    console.error('⚠️ DEBES CONFIGURAR TUS CREDENCIALES DE SUPABASE')
-    console.error('Abre js/config.js y reemplaza los valores')
-}
 // Cliente de Supabase (usando CDN)
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
