@@ -2,21 +2,23 @@
 // CONFIGURACIÓN DE SUPABASE
 // ============================================
 
+console.log('📦 Cargando config.js...')
+
 // Esperar a que window.supabase esté disponible
 if (typeof window.supabase === 'undefined') {
     console.error('❌ Supabase no está cargado. Asegúrate de que el script de Supabase CDN se carga ANTES de config.js')
     throw new Error('Supabase library not loaded')
 }
 
-// IMPORTANTE: Reemplaza estos valores con los de tu proyecto
-const SUPABASE_URL = 'https://qrnvgcnwuhpivaghfvrc.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFybnZnY253dWhwaXZhZ2hmdnJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDI2MTEsImV4cCI6MjA4NTg3ODYxMX0.BBl_aT_rYj496PvO6IUivKoRDVoZYYWuVGDKycF3qS4'
+// IMPORTANTE: Tus credenciales
+var SUPABASE_URL = 'https://qrnvgcnwuhpivaghfvrc.supabase.co'
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFybnZnY253dWhwaXZhZ2hmdnJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDI2MTEsImV4cCI6MjA4NTg3ODYxMX0.BBl_aT_rYj496PvO6IUivKoRDVoZYYWuVGDKycF3qS4'
 
-// Cliente de Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+// Cliente de Supabase - USAR VAR EN LUGAR DE CONST
+var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // Estado global de la aplicación
-const appState = {
+var appState = {
     currentUser: null,
     currentProfile: null,
     members: [],
@@ -24,31 +26,36 @@ const appState = {
 
 // Helper para verificar sesión
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session) {
-        const currentPath = window.location.pathname
-        if (!currentPath.includes('index.html') && currentPath !== '/' && !currentPath.endsWith('/')) {
-            window.location.href = '../index.html'
+    try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session) {
+            const currentPath = window.location.pathname
+            if (!currentPath.includes('index.html') && currentPath !== '/' && !currentPath.endsWith('/')) {
+                window.location.href = '../index.html'
+            }
+            return null
         }
+
+        appState.currentUser = session.user
+
+        // Cargar perfil
+        const { data: profile } = await supabase
+            .from('user_profiles')
+            .select(`
+                *,
+                iglesia:iglesias(id, nombre),
+                ministerio:ministerios(id, nombre)
+            `)
+            .eq('id', session.user.id)
+            .single()
+
+        appState.currentProfile = profile
+        return profile
+    } catch (error) {
+        console.error('❌ Error en checkAuth:', error)
         return null
     }
-
-    appState.currentUser = session.user
-
-    // Cargar perfil
-    const { data: profile } = await supabase
-        .from('user_profiles')
-        .select(`
-            *,
-            iglesia:iglesias(id, nombre),
-            ministerio:ministerios(id, nombre)
-        `)
-        .eq('id', session.user.id)
-        .single()
-
-    appState.currentProfile = profile
-    return profile
 }
 
 // Helper para cerrar sesión
@@ -124,3 +131,5 @@ function getPublicUrl(bucket, path) {
 }
 
 console.log('✅ Config cargada correctamente')
+console.log('✅ Supabase cliente creado')
+console.log('✅ Funciones helper disponibles')
