@@ -1,8 +1,18 @@
+// ============================================
+// CONFIGURACIÓN DE SUPABASE
+// ============================================
+
+// Esperar a que window.supabase esté disponible
+if (typeof window.supabase === 'undefined') {
+    console.error('❌ Supabase no está cargado. Asegúrate de que el script de Supabase CDN se carga ANTES de config.js')
+    throw new Error('Supabase library not loaded')
+}
+
 // IMPORTANTE: Reemplaza estos valores con los de tu proyecto
 const SUPABASE_URL = 'https://qrnvgcnwuhpivaghfvrc.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFybnZnY253dWhwaXZhZ2hmdnJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMDI2MTEsImV4cCI6MjA4NTg3ODYxMX0.BBl_aT_rYj496PvO6IUivKoRDVoZYYWuVGDKycF3qS4'
 
-// Cliente de Supabase (usando CDN)
+// Cliente de Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // Estado global de la aplicación
@@ -17,8 +27,9 @@ async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession()
     
     if (!session) {
-        if (window.location.pathname !== '/index.html' && window.location.pathname !== '/') {
-            window.location.href = 'index.html'
+        const currentPath = window.location.pathname
+        if (!currentPath.includes('index.html') && currentPath !== '/' && !currentPath.endsWith('/')) {
+            window.location.href = '../index.html'
         }
         return null
     }
@@ -43,7 +54,7 @@ async function checkAuth() {
 // Helper para cerrar sesión
 async function signOut() {
     await supabase.auth.signOut()
-    window.location.href = 'index.html'
+    window.location.href = '../index.html'
 }
 
 // Helper para mostrar notificaciones
@@ -112,4 +123,4 @@ function getPublicUrl(bucket, path) {
     return data.publicUrl
 }
 
-console.log('✅ Config cargada')
+console.log('✅ Config cargada correctamente')
