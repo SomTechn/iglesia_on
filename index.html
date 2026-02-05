@@ -11,7 +11,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--primary-50) 0%, white 50%, var(--primary-50) 100%);
+            background: linear-gradient(135deg, #eef2ff 0%, white 50%, #eef2ff 100%);
             padding: 2rem;
         }
         
@@ -28,38 +28,32 @@
         .login-logo {
             width: 64px;
             height: 64px;
-            background: var(--primary-600);
+            background: #4f46e5;
             border-radius: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 1rem;
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .login-logo svg {
-            width: 32px;
-            height: 32px;
-            color: white;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
         
         .login-title {
             font-size: 1.875rem;
             font-weight: 700;
-            color: var(--gray-900);
+            color: #111827;
             margin-bottom: 0.5rem;
         }
         
         .login-subtitle {
-            color: var(--gray-600);
+            color: #6b7280;
         }
         
         .login-card {
             background: white;
             border-radius: 16px;
             padding: 2rem;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--gray-200);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            border: 1px solid #e5e7eb;
         }
         
         .form-group {
@@ -70,16 +64,6 @@
             position: relative;
         }
         
-        .input-icon svg {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            color: var(--gray-400);
-        }
-        
         .input-icon input {
             padding-left: 2.75rem;
         }
@@ -87,7 +71,7 @@
         .login-footer {
             text-align: center;
             margin-top: 1.5rem;
-            color: var(--gray-500);
+            color: #6b7280;
             font-size: 0.875rem;
         }
     </style>
@@ -97,16 +81,14 @@
         <div class="login-box">
             <div class="login-header">
                 <div class="login-logo">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                    </svg>
+                    🏛️
                 </div>
                 <h1 class="login-title">Sistema de Gestión</h1>
                 <p class="login-subtitle">Iglesias</p>
             </div>
 
             <div class="login-card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--gray-900);">
+                <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: #111827;">
                     Iniciar Sesión
                 </h2>
 
@@ -114,9 +96,6 @@
                     <div class="form-group">
                         <label class="label">Correo Electrónico</label>
                         <div class="input-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-                            </svg>
                             <input 
                                 type="email" 
                                 id="email" 
@@ -130,9 +109,6 @@
                     <div class="form-group">
                         <label class="label">Contraseña</label>
                         <div class="input-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                            </svg>
                             <input 
                                 type="password" 
                                 id="password" 
@@ -155,52 +131,79 @@
         </div>
     </div>
 
-    <!-- IMPORTANTE: Los scripts deben ir en ESTE ORDEN -->
-    <!-- 1. Primero Supabase desde CDN -->
+    <!-- Cargar Supabase desde CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- 2. Después nuestro config.js -->
+    <!-- Cargar configuración -->
     <script src="js/config.js"></script>
     
-    <!-- 3. Por último nuestro código de login -->
+    <!-- Lógica de login -->
     <script>
+        console.log('🔄 Iniciando aplicación...')
+        
         // Verificar si ya está autenticado
-        checkAuth().then(profile => {
-            if (profile) {
-                window.location.href = 'pages/dashboard.html'
-            }
-        })
-
-        // Manejar login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault()
-            
-            const email = document.getElementById('email').value
-            const password = document.getElementById('password').value
-            const btn = document.getElementById('loginBtn')
-            
-            btn.disabled = true
-            btn.innerHTML = '<span class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></span> Iniciando...'
-            
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                })
-                
-                if (error) throw error
-                
-                showNotification('¡Bienvenido!', 'success')
-                setTimeout(() => {
+        if (typeof checkAuth === 'function') {
+            checkAuth().then(profile => {
+                if (profile) {
+                    console.log('✅ Usuario ya autenticado, redirigiendo...')
                     window.location.href = 'pages/dashboard.html'
-                }, 500)
-            } catch (error) {
-                console.error('Error en login:', error)
-                showNotification(error.message || 'Error al iniciar sesión', 'error')
-                btn.disabled = false
-                btn.textContent = 'Iniciar Sesión'
-            }
-        })
+                } else {
+                    console.log('ℹ️ Usuario no autenticado')
+                }
+            }).catch(error => {
+                console.error('❌ Error verificando auth:', error)
+            })
+        } else {
+            console.error('❌ checkAuth no está definido')
+        }
+
+        // Manejar formulario de login
+        const form = document.getElementById('loginForm')
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault()
+                console.log('🔐 Intentando login...')
+                
+                const email = document.getElementById('email').value
+                const password = document.getElementById('password').value
+                const btn = document.getElementById('loginBtn')
+                
+                btn.disabled = true
+                btn.textContent = '⏳ Iniciando...'
+                
+                try {
+                    if (typeof supabase === 'undefined') {
+                        throw new Error('Supabase no está cargado')
+                    }
+
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    })
+                    
+                    if (error) throw error
+                    
+                    console.log('✅ Login exitoso')
+                    if (typeof showNotification === 'function') {
+                        showNotification('¡Bienvenido!', 'success')
+                    }
+                    
+                    setTimeout(() => {
+                        window.location.href = 'pages/dashboard.html'
+                    }, 500)
+                    
+                } catch (error) {
+                    console.error('❌ Error en login:', error)
+                    if (typeof showNotification === 'function') {
+                        showNotification(error.message || 'Error al iniciar sesión', 'error')
+                    } else {
+                        alert('Error: ' + (error.message || 'Error al iniciar sesión'))
+                    }
+                    btn.disabled = false
+                    btn.textContent = 'Iniciar Sesión'
+                }
+            })
+        }
     </script>
 </body>
 </html>
