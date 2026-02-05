@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miembros - Sistema de Gestión</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🏛️</div>
+                <div>
+                    <h2 style="font-weight: 700; font-size: 1rem;">Iglesia</h2>
+                    <p style="font-size: 0.75rem; color: var(--gray-500);">Sistema</p>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+                <a href="members.html" class="nav-item active">👥 Miembros</a>
+                <a href="#" class="nav-item">👪 Grupos</a>
+                <a href="#" class="nav-item">💰 Finanzas</a>
+                <a href="#" class="nav-item">📅 Eventos</a>
+            </nav>
+            
+            <div style="padding: 1rem;">
+                <button onclick="signOut()" class="btn btn-secondary" style="width: 100%;">🚪 Cerrar Sesión</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <nav class="navbar">
+                <h1 style="font-size: 1.25rem; font-weight: 600;">Miembros</h1>
+                <div id="userInfo"></div>
+            </nav>
+
+            <div class="content">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Miembros</h1>
+                        <p style="color: var(--gray-600);">Gestiona los miembros de tu congregación</p>
+                    </div>
+                    <button onclick="openModal()" class="btn btn-primary">➕ Nuevo Miembro</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <input type="text" id="searchInput" class="input" placeholder="🔍 Buscar por nombre, email..." style="flex: 1; min-width: 250px;">
+                        <select id="statusFilter" class="input" style="min-width: 150px;">
+                            <option value="all">Todos los estados</option>
+                            <option value="activo">Activos</option>
+                            <option value="inactivo">Inactivos</option>
+                            <option value="visitante">Visitantes</option>
+                        </select>
+                        <select id="genderFilter" class="input" style="min-width: 150px;">
+                            <option value="all">Todos los géneros</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Members Grid -->
+                <div id="membersGrid" class="grid grid-cols-3">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="memberModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 style="font-size: 1.25rem; font-weight: 600;" id="modalTitle">Nuevo Miembro</h3>
+                <button onclick="closeModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="memberForm">
+                    <!-- Foto -->
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <div style="width: 120px; height: 120px; margin: 0 auto; position: relative;">
+                            <div id="photoPreview" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--gray-200); background: var(--gray-100); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                                👤
+                            </div>
+                            <label style="position: absolute; bottom: 0; right: 0; background: var(--primary-600); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow);">
+                                📷
+                                <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2">
+                        <div class="form-group">
+                            <label class="label">Nombre *</label>
+                            <input type="text" name="nombre" class="input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Apellido *</label>
+                            <input type="text" name="apellido" class="input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Fecha de Nacimiento</label>
+                            <input type="date" name="fecha_nacimiento" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Género</label>
+                            <select name="genero" class="input">
+                                <option value="">Seleccionar...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Email</label>
+                            <input type="email" name="email" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Teléfono</label>
+                            <input type="tel" name="telefono" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Celular</label>
+                            <input type="tel" name="celular" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Estado Civil</label>
+                            <select name="estado_civil" class="input">
+                                <option value="">Seleccionar...</option>
+                                <option value="soltero">Soltero/a</option>
+                                <option value="casado">Casado/a</option>
+                                <option value="divorciado">Divorciado/a</option>
+                                <option value="viudo">Viudo/a</option>
+                                <option value="union_libre">Unión Libre</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label">Dirección</label>
+                        <input type="text" name="direccion" class="input">
+                    </div>
+
+                    <div class="grid grid-cols-2">
+                        <div class="form-group">
+                            <label class="label">Ciudad</label>
+                            <input type="text" name="ciudad" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Ocupación</label>
+                            <input type="text" name="ocupacion" class="input">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label">Notas</label>
+                        <textarea name="notas" class="input" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
+                <button type="button" onclick="saveMember()" class="btn btn-primary" id="saveBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script>
+        let profile = null
+        let members = []
+        let editingMember = null
+        let photoFile = null
+
+        async function init() {
+            profile = await checkAuth()
+            if (!profile) return
+
+            document.getElementById('userInfo').innerHTML = `
+                <div style="text-align: right;">
+                    <p style="font-weight: 500; font-size: 0.875rem;">${profile.nombre_completo}</p>
+                    <p style="font-size: 0.75rem; color: var(--gray-500);">${profile.role}</p>
+                </div>
+            `
+
+            loadMembers()
+
+            // Event listeners
+            document.getElementById('searchInput').addEventListener('input', filterMembers)
+            document.getElementById('statusFilter').addEventListener('change', filterMembers)
+            document.getElementById('genderFilter').addEventListener('change', filterMembers)
+            document.getElementById('photoInput').addEventListener('change', handlePhotoChange)
+        }
+
+        async function loadMembers() {
+            try {
+                const { data, error } = await supabase
+                    .from('miembros')
+                    .select('*')
+                    .eq('iglesia_id', profile.iglesia_id)
+                    .order('created_at', { ascending: false })
+
+                if (error) throw error
+                members = data || []
+                renderMembers(members)
+            } catch (error) {
+                console.error('Error:', error)
+                showNotification('Error al cargar miembros', 'error')
+            }
+        }
+
+        function filterMembers() {
+            const search = document.getElementById('searchInput').value.toLowerCase()
+            const status = document.getElementById('statusFilter').value
+            const gender = document.getElementById('genderFilter').value
+
+            const filtered = members.filter(m => {
+                const matchSearch = m.nombre.toLowerCase().includes(search) ||
+                                  m.apellido.toLowerCase().includes(search) ||
+                                  (m.email && m.email.toLowerCase().includes(search))
+                const matchStatus = status === 'all' || m.estado === status
+                const matchGender = gender === 'all' || m.genero === gender
+
+                return matchSearch && matchStatus && matchGender
+            })
+
+            renderMembers(filtered)
+        }
+
+        function renderMembers(membersList) {
+            const grid = document.getElementById('membersGrid')
+
+            if (membersList.length === 0) {
+                grid.innerHTML = `
+                    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                        <p style="font-size: 3rem; margin-bottom: 1rem;">🔍</p>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">No se encontraron miembros</h3>
+                        <p style="color: var(--gray-600);">Intenta ajustar los filtros o agrega un nuevo miembro</p>
+                    </div>
+                `
+                return
+            }
+
+            grid.innerHTML = membersList.map(m => `
+                <div class="member-card">
+                    <div class="member-card-header">
+                        <div class="member-card-photo">
+                            ${m.foto_url 
+                                ? `<img src="${m.foto_url}" alt="${m.nombre}">`
+                                : `<div class="member-card-photo-placeholder">👤</div>`
+                            }
+                        </div>
+                        <div class="member-card-actions">
+                            <button onclick="editMember('${m.id}')" class="btn btn-secondary" style="padding: 0.5rem;">✏️</button>
+                            <button onclick="deleteMember('${m.id}')" class="btn btn-danger" style="padding: 0.5rem;">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="member-card-body">
+                        <h3 class="member-card-name">${m.nombre} ${m.apellido}</h3>
+                        <span class="badge badge-${m.estado === 'activo' ? 'success' : 'info'}">${m.estado}</span>
+                        
+                        <div class="member-card-info">
+                            ${m.email ? `<div class="member-card-info-item">📧 ${m.email}</div>` : ''}
+                            ${m.celular ? `<div class="member-card-info-item">📱 ${m.celular}</div>` : ''}
+                            ${m.fecha_nacimiento ? `<div class="member-card-info-item">🎂 ${calculateAge(m.fecha_nacimiento)} años</div>` : ''}
+                        </div>
+                        
+                        ${m.ocupacion ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--gray-100); font-size: 0.75rem; color: var(--gray-500);">${m.ocupacion}</div>` : ''}
+                    </div>
+                </div>
+            `).join('')
+        }
+
+        function openModal(member = null) {
+            editingMember = member
+            document.getElementById('modalTitle').textContent = member ? 'Editar Miembro' : 'Nuevo Miembro'
+            document.getElementById('memberModal').classList.remove('hidden')
+            
+            const form = document.getElementById('memberForm')
+            form.reset()
+            document.getElementById('photoPreview').innerHTML = '👤'
+            photoFile = null
+
+            if (member) {
+                Object.keys(member).forEach(key => {
+                    const input = form.elements[key]
+                    if (input) input.value = member[key] || ''
+                })
+                
+                if (member.foto_url) {
+                    document.getElementById('photoPreview').innerHTML = `<img src="${member.foto_url}" style="width: 100%; height: 100%; object-fit: cover;">`
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('memberModal').classList.add('hidden')
+            editingMember = null
+        }
+
+        function handlePhotoChange(e) {
+            const file = e.target.files[0]
+            if (file) {
+                photoFile = file
+                const reader = new FileReader()
+                reader.onload = (e) => {
+                    document.getElementById('photoPreview').innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`
+                }
+                reader.readAsDataURL(file)
+            }
+        }
+
+        async function saveMember() {
+            const form = document.getElementById('memberForm')
+            const formData = new FormData(form)
+            const data = Object.fromEntries(formData.entries())
+            const btn = document.getElementById('saveBtn')
+
+            btn.disabled = true
+            btn.textContent = '⏳ Guardando...'
+
+            try {
+                // Subir foto si hay
+                let fotoUrl = editingMember?.foto_url || null
+                if (photoFile) {
+                    const memberId = editingMember?.id || crypto.randomUUID()
+                    const ext = photoFile.name.split('.').pop()
+                    const path = `${profile.iglesia_id}/${memberId}.${ext}`
+                    
+                    await uploadFile('member_photos', path, photoFile)
+                    fotoUrl = getPublicUrl('member_photos', path)
+                }
+
+                data.foto_url = fotoUrl
+                data.iglesia_id = profile.iglesia_id
+
+                if (editingMember) {
+                    const { error } = await supabase
+                        .from('miembros')
+                        .update(data)
+                        .eq('id', editingMember.id)
+                    
+                    if (error) throw error
+                    showNotification('Miembro actualizado', 'success')
+                } else {
+                    const { error } = await supabase
+                        .from('miembros')
+                        .insert([data])
+                    
+                    if (error) throw error
+                    showNotification('Miembro registrado', 'success')
+                }
+
+                closeModal()
+                loadMembers()
+            } catch (error) {
+                console.error('Error:', error)
+                showNotification('Error al guardar miembro', 'error')
+            } finally {
+                btn.disabled = false
+                btn.textContent = 'Guardar'
+            }
+        }
+
+        function editMember(id) {
+            const member = members.find(m => m.id === id)
+            if (member) openModal(member)
+        }
+
+        async function deleteMember(id) {
+            if (!confirm('¿Estás seguro de eliminar este miembro?')) return
+
+            try {
+                const { error } = await supabase
+                    .from('miembros')
+                    .delete()
+                    .eq('id', id)
+
+                if (error) throw error
+                showNotification('Miembro eliminado', 'success')
+                loadMembers()
+            } catch (error) {
+                console.error('Error:', error)
+                showNotification('Error al eliminar miembro', 'error')
+            }
+        }
+
+        init()
+    </script>
+</body>
+</html>

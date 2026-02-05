@@ -1,0 +1,19 @@
+import { Navigate } from 'react-router-dom'
+import { useAuth } from '@/context/AuthContext'
+import Loading from '@/components/common/Loading'
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <Loading fullScreen message="Verificando sesión..." />
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  return children
+}
+
+export default ProtectedRoute

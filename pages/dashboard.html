@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Gestión</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🏛️</div>
+                <div>
+                    <h2 style="font-weight: 700; font-size: 1rem;">Iglesia</h2>
+                    <p style="font-size: 0.75rem; color: var(--gray-500);">Sistema</p>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active">
+                    📊 Dashboard
+                </a>
+                <a href="members.html" class="nav-item">
+                    👥 Miembros
+                </a>
+                <a href="#" class="nav-item">
+                    👪 Grupos
+                </a>
+                <a href="#" class="nav-item">
+                    💰 Finanzas
+                </a>
+                <a href="#" class="nav-item">
+                    📅 Eventos
+                </a>
+            </nav>
+            
+            <div style="padding: 1rem;">
+                <button onclick="signOut()" class="btn btn-secondary" style="width: 100%;">
+                    🚪 Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <nav class="navbar">
+                <h1 id="churchName" style="font-size: 1.25rem; font-weight: 600;">Dashboard</h1>
+                <div id="userInfo"></div>
+            </nav>
+
+            <div class="content">
+                <div style="margin-bottom: 2rem;">
+                    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        ¡Bienvenido, <span id="userName"></span>! 👋
+                    </h1>
+                    <p style="color: var(--gray-600);">Aquí está un resumen de tu congregación</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-4" id="statsGrid" style="margin-bottom: 2rem;">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-3">
+                    <div class="card">
+                        <h3 style="font-weight: 600; margin-bottom: 1rem;">Distribución por Género</h3>
+                        <div id="genderChart"></div>
+                    </div>
+
+                    <div class="card" style="grid-column: span 2;">
+                        <h3 style="font-weight: 600; margin-bottom: 1rem;">Próximos Eventos</h3>
+                        <div id="eventsChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script>
+        let profile = null
+
+        async function init() {
+            profile = await checkAuth()
+            if (!profile) return
+
+            // Mostrar nombre
+            document.getElementById('userName').textContent = profile.nombre_completo.split(' ')[0]
+            document.getElementById('churchName').textContent = profile.iglesia?.nombre || 'Sistema'
+            document.getElementById('userInfo').innerHTML = `
+                <div style="text-align: right;">
+                    <p style="font-weight: 500; font-size: 0.875rem;">${profile.nombre_completo}</p>
+                    <p style="font-size: 0.75rem; color: var(--gray-500);">${profile.role}</p>
+                </div>
+            `
+
+            loadStats()
+        }
+
+        async function loadStats() {
+            try {
+                // Cargar miembros
+                const { data: members } = await supabase
+                    .from('miembros')
+                    .select('*')
+                    .eq('iglesia_id', profile.iglesia_id)
+
+                // Cargar grupos
+                const { data: groups } = await supabase
+                    .from('grupos')
+                    .select('id')
+                    .eq('iglesia_id', profile.iglesia_id)
+                    .eq('activo', true)
+
+                // Calcular stats
+                const activeMembers = members.filter(m => m.estado === 'activo').length
+                const hace30Dias = new Date()
+                hace30Dias.setDate(hace30Dias.getDate() - 30)
+                const newMembers = members.filter(m => {
+                    return new Date(m.fecha_ingreso) >= hace30Dias && m.estado === 'activo'
+                }).length
+
+                const men = members.filter(m => m.genero === 'Masculino' && m.estado === 'activo').length
+                const women = members.filter(m => m.genero === 'Femenino' && m.estado === 'activo').length
+
+                // Mostrar stats
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <div>
+                                <p style="font-size: 0.875rem; color: var(--gray-600);">Total Miembros</p>
+                                <p style="font-size: 2rem; font-weight: 700;">${members.length}</p>
+                            </div>
+                            <div style="width: 48px; height: 48px; background: var(--primary-50); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                👥
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <div>
+                                <p style="font-size: 0.875rem; color: var(--gray-600);">Activos</p>
+                                <p style="font-size: 2rem; font-weight: 700;">${activeMembers}</p>
+                            </div>
+                            <div style="width: 48px; height: 48px; background: var(--green-50); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                ✅
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <div>
+                                <p style="font-size: 0.875rem; color: var(--gray-600);">Nuevos (30d)</p>
+                                <p style="font-size: 2rem; font-weight: 700;">${newMembers}</p>
+                            </div>
+                            <div style="width: 48px; height: 48px; background: var(--primary-50); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                ⭐
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <div>
+                                <p style="font-size: 0.875rem; color: var(--gray-600);">Grupos</p>
+                                <p style="font-size: 2rem; font-weight: 700;">${groups.length}</p>
+                            </div>
+                            <div style="width: 48px; height: 48px; background: var(--primary-50); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                👪
+                            </div>
+                        </div>
+                    </div>
+                `
+
+                // Mostrar distribución de género
+                const totalGender = men + women
+                const menPercent = totalGender > 0 ? (men / totalGender * 100) : 0
+                const womenPercent = totalGender > 0 ? (women / totalGender * 100) : 0
+
+                document.getElementById('genderChart').innerHTML = `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="font-size: 0.875rem;">Hombres</span>
+                            <span style="font-weight: 600;">${men}</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${menPercent}%; height: 100%; background: #3b82f6; transition: width 0.5s;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="font-size: 0.875rem;">Mujeres</span>
+                            <span style="font-weight: 600;">${women}</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${womenPercent}%; height: 100%; background: #ec4899; transition: width 0.5s;"></div>
+                        </div>
+                    </div>
+                `
+
+                // Mostrar próximos eventos
+                const { data: events } = await supabase
+                    .from('eventos')
+                    .select('*')
+                    .eq('iglesia_id', profile.iglesia_id)
+                    .gte('fecha_inicio', new Date().toISOString())
+                    .order('fecha_inicio', { ascending: true })
+                    .limit(5)
+
+                if (events && events.length > 0) {
+                    document.getElementById('eventsChart').innerHTML = events.map(event => `
+                        <div style="padding: 0.75rem; background: var(--gray-50); border-radius: 8px; margin-bottom: 0.5rem;">
+                            <p style="font-weight: 500; margin-bottom: 0.25rem;">${event.nombre}</p>
+                            <p style="font-size: 0.75rem; color: var(--gray-600);">
+                                ${formatDate(event.fecha_inicio)}
+                            </p>
+                        </div>
+                    `).join('')
+                } else {
+                    document.getElementById('eventsChart').innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--gray-500);">
+                            No hay eventos próximos
+                        </div>
+                    `
+                }
+
+            } catch (error) {
+                console.error('Error cargando stats:', error)
+                showNotification('Error al cargar estadísticas', 'error')
+            }
+        }
+
+        init()
+    </script>
+</body>
+</html>
